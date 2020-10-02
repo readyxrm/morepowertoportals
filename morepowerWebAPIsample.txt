@@ -1,0 +1,98 @@
+{% extends 'Layout 1 Column' %}
+{% block main %}
+
+{% include 'PortalWebAPIAjax' %}
+
+<!-- sections and containers to show better alignment of data and text -->
+<div class="row sectionBlockLayout" style="display: flex; flex-wrap: wrap; text-align: left; min-height: 100px; padding: 8px; margin: 0px;">
+  <div class="container" style="display: flex; flex-wrap: wrap;">
+    <div class="col-md-12 columnBlockLayout" style="display: flex; flex-direction: column;">
+
+        <!-- FetchXML Liquid Tag -->
+        {% fetchxml registrations %}
+            <fetch returntotalrecordcount="true" >
+                <entity name="rxrm_registration" >
+                    <filter type="and" >
+                        <condition attribute="statecode" operator="eq" value="0" />
+                    </filter>
+                    <attribute name="rxrm_agegroup" />
+                    <attribute name="rxrm_gender" />
+                    <attribute name="rxrm_weightclass" />
+                    <attribute name="rxrm_registrationid" />
+                    <attribute name="rxrm_squatresult" />
+                    <attribute name="rxrm_benchresult" />
+                    <attribute name="rxrm_deadliftresult" />
+                    <attribute name="rxrm_registration" />
+                </entity>
+            </fetch>
+        {% endfetchxml %}
+
+        <!-- Parse through results -->
+        {% if registrations.results.total_record_count > 0 %}
+            <table>
+                <tr>
+                    <th>Registration</th>
+                    <th>Squat</th>
+                    <th>Bench</th>
+                    <th>Deadlift</th>
+                    <th>Age Group</th>
+                    <th>Gender</th>
+                    <th>Weight Class</th>
+                    <th></th>
+                </tr>
+            {% for reg in registrations.results.entities %}
+                <tr>
+                    <td>{{reg.rxrm_registration}}</td>
+                    <td><input type="number" id="squat{{reg.id}}" name="squat" min="0" max="1000" value="{{reg.rxrm_squatresult}}"></td>
+                    <td><input type="number" id="bench{{reg.id}}" name="bench" min="0" max="1000" value="{{reg.rxrm_benchresult}}"></td>
+                    <td><input type="number" id="deadlift{{reg.id}}" name="deadlift" min="0" max="1000" value="{{reg.rxrm_deadliftresult}}"></td>
+                    <td>{{reg.rxrm_agegroup.label}}</td>
+                    <td>{{reg.rxrm_gender.label}}</td>
+                    <td>{{reg.rxrm_weightclass.label}}</td>
+                    <td><input type="button" value="SAVE" onclick="update('{{reg.id}}',document.getElementById('squat{{reg.id}}').value,document.getElementById('bench{{reg.id}}').value,document.getElementById('deadlift{{reg.id}}').value)"></td>
+                </tr>
+            {% endfor %}
+            </table>
+        {% else %}
+            No data found.
+        {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+
+function update(guid,squat,bench,deadlift) {
+
+
+// This is a sample update snippet using the PATCH operator. Use this when you want to update many attributes in the record. You need to update the ID of the record and the attributes in the json object to your needs. A sample list of attributes and dummy values are provided for you.
+var dataObject={
+		"rxrm_benchresult": parseFloat(bench),
+		"rxrm_deadliftresult": parseFloat(deadlift),
+		"rxrm_squatresult":parseFloat(squat)
+};
+
+    //var bench = parseFloat(bench);
+
+
+webapi.safeAjax({
+	type: "PATCH",
+	url: "/_api/rxrm_registrations(" + guid + ")",
+	contentType:"application/json",
+    data: JSON.stringify(dataObject),
+	success: function(res) {
+		//alert(res);
+        console.log(res)
+        
+	}
+});
+
+
+}
+
+</script>
+
+
+
+
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'Layout 1 Column' %}
+{% block main %}
+
+<!--Example of CSS-->
+
+<!--
+<style>
+    body {
+        color: white;  
+        background-color: darkgray;
+    }
+    h1 {
+        color: white;
+        text-align: center;
+    }
+    h3 {
+        color: white;
+        text-align: left;
+    }
+    p {
+        color: white;  
+        font-family: verdana;
+        font-size: 20px;
+    }
+</style>
+-->
+
+<!-- sections and containers to show better alignment of data and text -->
+<div class="row sectionBlockLayout" style="display: flex; flex-wrap: wrap; text-align: left; min-height: 100px; padding: 8px; margin: 0px;">
+  <div class="container" style="display: flex; flex-wrap: wrap;">
+    <div class="col-md-12 columnBlockLayout" style="display: flex; flex-direction: column;">
+        
+        <!-- Example of Content Snippets -->
+        {{ snippets["Announcements"] }}
+
+        <!-- Example of Site Markers -->
+        {% assign meetdetail_marker = sitemarkers["Meet Details"] %}
+        {% assign hostclub_marker = sitemarkers["hostclub"] %}
+        {% assign register_marker = sitemarkers["Register"] %}
+
+        <!-- FetchXML Liquid Tag -->
+        {% fetchxml meets %}
+        <fetch returntotalrecordcount="true">
+            <entity name="rxrm_meet">
+                <attribute name="rxrm_meetid" />
+                <attribute name="rxrm_meetdirector" />
+                <attribute name="rxrm_enddateandtime" />
+                <attribute name="rxrm_registrationfee" />
+                <attribute name="rxrm_city" />
+                <attribute name="rxrm_startdateandtime" />
+                <attribute name="rxrm_name" />
+                <attribute name="rxrm_description" />
+                <attribute name="rxrm_hostclub" />
+                <order attribute="rxrm_startdateandtime" />
+            </entity>
+        </fetch>
+        {% endfetchxml %}
+
+        <!-- Parse through results -->
+        {% if meets.results.total_record_count > 0 %}
+            {% for meet in meets.results.entities %}
+                <H3><a href="{{meetdetail_marker.url}}?id={{meet.id}}">{{meet.rxrm_name}}</a></H3>
+                </br>
+                {{meet.rxrm_startdateandtime | date:'MM/dd/yyyy'}} to {{meet.rxrm_enddateandtime | date:'MM/dd/yyyy'}}  
+                </br>
+                Hosted by: <a href="{{hostclub_marker.url}}?id={{meet.rxrm_hostclub.id}}">{{meet.rxrm_hostclub.name}}</a>
+                </br>
+                {{meet.rxrm_description}}
+                </br>
+                <H3><a href="{{register_marker.url}}?id={{ meet.id }}">Register!</a></H3>
+                </br>
+
+                <!-- Note filtering of currency format -->
+                Cost: {{meet.rxrm_registrationfee | format: "C", "en-US"}}
+                <hr>
+            {% endfor %}
+        {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
